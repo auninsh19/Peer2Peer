@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Login</title>
+</head>
+<body>
+    <header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo">
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <form class="auth-form" method="POST" action="{{ url_for('login') }}">
+            <h1>Login</h1>
+
+            <label for="username">Username:</label>
+            <input type="text" name="username" required>
+                
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+                
+            <button type="submit">Login</button>
+
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+        </form>
+    </div>
+
+    <div class="cancel-container">
+        <button type="button" class="cancelbtn" onclick="window.location.href='{{ url_for('index') }}'">Cancel</button>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded',function() {
+                    Swal.fire({
+                        title: 'Notification',
+                        text: "{{ messages[0] }}",  // Display the first message
+                        icon: 'danger',  // Change this to 'error', 'warning', etc.
+                        confirmButtonText: 'OK'
+                    });
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+    
+</body>
+</html>

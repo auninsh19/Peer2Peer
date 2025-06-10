@@ -1,0 +1,106 @@
+<!-- edit_assignment.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <title>Edit Assignment</title>
+</head>
+<body>
+   <header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo"> <!-- Replace with your logo path -->
+            </div>
+
+            <div class="user-profile">
+                <img src="{{ url_for('static', filename='user.png') }}" alt="Profile picture">
+                <span>{{ user.name }}</span>
+                <button class="profile-toggle">▼</button> <!-- Clickable element -->
+                <div class="profile-links" style="display: none;"> <!-- Initially hidden -->
+                    <a href="{{ url_for('logout') }}">Logout</a> <!-- Link to logout -->
+                </div>
+            </div>
+        </div>
+   </header>
+
+   <div class="main">
+      <div class="sidenav">
+            <a href="{{ url_for('course_view', course_id=course.id) }}" class="{% if active_page == 'course_view_lecturer' %}active{% endif %}">Main</a>
+            <a href="{{ url_for('participants_view', course_id=course.id) }}" class="{% if active_page == 'participants' %}active{% endif %}">Participants</a>
+            <a href="{{ url_for('group_management', course_id=course.id) }}" class="{% if active_page == 'group_management' %}active{% endif %}">Group Management</a>
+            <a href="{{ url_for('assignment_management', course_id=course.id) }}" class="{% if active_page == 'edit_assignment' %}active{% endif %}">Assignment Management</a>
+            <a href="{{ url_for('view_evaluations', course_id=course.id) }}" class="{% if active_page == 'view_evaluations' %}active{% endif %}">View Evaluations</a>
+            <hr>
+             <a href="{{ url_for('course_selection') }}">◀ Back to Course List</a>
+        </div>
+
+        <div class="webloc-section">
+            <p>{{ course.code }} - {{ course.name }} / Assignment Management</p>
+        </div>
+
+        <div class="block">
+
+       <h2>Edit Assignment</h2>
+          <form class="assignment-form" method="POST">
+              <label for="title">Title:</label>
+              <input type="text" name="title" value="{{ assignment.title }}" required>
+
+              <label for="description">Description:</label>
+              <textarea name="description" required>{{ assignment.description }}</textarea>
+
+              <button class="web-button" type="submit">Save Changes</button>
+              <a class="web-button" href="{{ url_for('assignment_management', course_id=course.id) }}">Cancel</a>
+          </form>
+       </div>
+   </div>
+
+   {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded',function() {
+                    Swal.fire({
+                        title: 'Notification',
+                        text: "{{ messages[0] }}",  // Display the first message
+                        icon: 'success',  // Change this to 'error', 'warning', etc.
+                        confirmButtonText: 'OK'
+                    });
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+
+   <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle profile dropdown
+        const toggleButton = document.querySelector('.profile-toggle');
+        const profileLinks = document.querySelector('.profile-links');
+
+        if (toggleButton && profileLinks) {
+            toggleButton.addEventListener('click', function() {
+                profileLinks.style.display = (profileLinks.style.display === 'none' || profileLinks.style.display === '') 
+                    ? 'block' 
+                    : 'none';
+            });
+
+            // Close profile dropdown if clicked outside
+            document.addEventListener('click', function(event) {
+                if (!toggleButton.contains(event.target) && !profileLinks.contains(event.target)) {
+                    profileLinks.style.display = 'none';
+                }
+            });
+        }
+    });
+    </script>
+</body>
+</html>

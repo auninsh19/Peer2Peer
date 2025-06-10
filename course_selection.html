@@ -1,0 +1,80 @@
+<!-- course_selection.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>Select Course</title>
+</head>
+<body>
+    <header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo"> <!-- Replace with your logo path -->
+            </div>
+            
+            <div class="user-profile">
+                <img src="{{ url_for('static', filename='user.png') }}" alt="Profile picture">
+                <span>{{ user.name }}</span>
+                <button class="profile-toggle">▼</button> <!-- Clickable element -->
+                <div class="profile-links" style="display: none;"> <!-- Initially hidden -->
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main">
+        <div class="sidenav">
+            <a href="{{ url_for('course_selection') }}" class="{% if active_page == 'course_selection' %}active{% endif %}">Course List</a>
+            <a href="{{ url_for('enroll') }}" class="{% if active_page == 'enroll' %}active{% endif %}">Course Enrollment</a>
+        </div>
+
+        <div class="webloc-section">
+            <p>Peer2Peer / Course List</p>
+        </div>
+
+        <div class="block">
+            <h2>Registered Courses</h2>
+
+            {% if courses and courses|length > 0 %}
+                <ul id="course-list" class="course-list">
+                    {% for course in courses %}
+                        <li>
+                            <a href="{{ url_for('course_view', course_id=course.id) }}">{{ course.code }} - {{ course.name }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p id="no-course-message" class="no-course-message">You have not enrolled in any courses yet. Please <a href="{{ url_for('enroll') }}">enroll</a> in a course.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.querySelector('.profile-toggle');
+        const profileLinks = document.querySelector('.profile-links');
+
+        toggleButton.addEventListener('click', function() {
+            // Toggle the display of the profile links
+            if (profileLinks.style.display === 'none' || profileLinks.style.display === '') {
+                profileLinks.style.display = 'block';
+            } else {
+                profileLinks.style.display = 'none';
+            }
+        });
+
+        // Optional: Close the profile links if clicking outside
+        document.addEventListener('click', function(event) {
+            if (!toggleButton.contains(event.target) && !profileLinks.contains(event.target)) {
+                profileLinks.style.display = 'none';
+            }
+        });
+    });
+</script>

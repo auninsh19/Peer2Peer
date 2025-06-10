@@ -1,0 +1,97 @@
+<!-- assignment_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <title>{{ course.code }} - {{ course.name }} - Assignment List</title>
+</head>
+<body>
+    <header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo"> <!-- Replace with your logo path -->
+            </div>
+
+            <div class="user-profile">
+                <img src="{{ url_for('static', filename='user.png') }}" alt="Profile picture">
+                <span>{{ user.name }}</span>
+                <button class="profile-toggle">▼</button> <!-- Clickable element -->
+                <div class="profile-links" style="display: none;"> <!-- Initially hidden -->
+                    <a href="#">Profile</a>
+                    <a href="{{ url_for('logout') }}">Logout</a> <!-- Link to logout -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main">
+    	<!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="sidenav">
+            <a href="{{ url_for('course_view', course_id=course.id) }}" class="{% if active_page == 'course_view_lecturer' %}active{% endif %}">Main</a>
+            <a href="{{ url_for('participants_view', course_id=course.id) }}" class="{% if active_page == 'participants' %}active{% endif %}">Participants</a>
+            <a href="{{ url_for('group_management', course_id=course.id) }}" class="{% if active_page == 'group_management' %}active{% endif %}">Group Management</a>
+            <a href="{{ url_for('assignment_list', course_id=course.id) }}" class="{% if active_page == 'assignment_list' %}active{% endif %}">Assignment Management</a>
+            <a href="#">View Evaluations</a>
+            <a href="#">Download Report</a>
+        </div>
+
+        <div class="webloc-section">
+            <p>{{ course.code }} - {{ course.name }} / Assignment Management / Assignment List</p>
+        </div>
+
+        <button class="web-button" onclick="location.href='{{ url_for('add_assignment', course_id=course.id) }}'">Add Assignment</button> 
+
+        <div class="block-2">
+		    <h3>Current Assignments</h3>
+		    <ul>
+		        {% if assignments %}
+		            {% for assignment in assignments %}
+		                <li>
+		                    <strong>{{ assignment.title }}</strong><br>
+		                    <p>{{ assignment.description }}</p>
+		                </li>
+		            {% endfor %}
+		        {% else %}
+		            <li>No assignments available at this time.</li>
+		        {% endif %}
+		    </ul>
+		</div>
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url_for('course_selection') }}">Back to Course List</a>
+    </div>
+</body>
+</html>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.querySelector('.profile-toggle');
+        const profileLinks = document.querySelector('.profile-links');
+
+        toggleButton.addEventListener('click', function() {
+            profileLinks.style.display = profileLinks.style.display === 'none' || profileLinks.style.display === '' ? 'block' : 'none';
+        });
+
+        // Optional: Close the profile links if clicking outside
+        document.addEventListener('click', function(event) {
+            if (!toggleButton.contains(event.target) && !profileLinks.contains(event.target)) {
+                profileLinks.style.display = 'none';
+            }
+        });
+    });
+</script>
