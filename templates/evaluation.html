@@ -1,0 +1,763 @@
+<!-- evaluation.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style.css">
+    
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <title>Evaluation</title>
+</head>
+<body>
+    <header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo">
+            </div>
+
+            <div class="user-profile">
+                <img src="{{ url_for('static', filename='user.png') }}" alt="Profile picture">
+                <span>{{ user.name }}</span>
+                <button class="profile-toggle">▼</button>
+                <div class="profile-links" style="display: none;">
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="main">
+        <div class="sidenav">
+            <a href="{{ url_for('course_view', course_id=course.id) }}" class="{% if active_page == 'course_view' %}active{% endif %}">Main</a>
+            <a href="{{ url_for('participants_view', course_id=course.id) }}" class="{% if active_page == 'participants_student' %}active{% endif %}">Participants</a>
+            <a href="{{ url_for('evaluation', course_id=course.id) }}" class="{% if active_page == 'evaluation' %}active{% endif %}">Evaluation</a>
+            <a href="{{ url_for('view_feedback', course_id=course.id) }}" class="{% if active_page == 'view_feedback' %}active{% endif %}">View Feedback</a>
+            <hr>
+             <a href="{{ url_for('course_selection') }}">◀ Back to Course List</a>
+        </div>
+
+        <div class="webloc-section">
+            <p>{{ course.code }} - {{ course.name }} / Evaluation</p>
+        </div>
+
+        <!-- evaluation status -->
+        <div class="block-2">
+            <h2>Evaluation Status</h2>
+            {% if group is none %}
+                <p style="font-size: 16px; color: red;">You are not associated with any group yet, no evaluations needed.</p>
+            {% elif total_evaluations == 0 %}
+                <p style="font-size: 16px;">All evaluations are completed!</p>
+            {% elif total_evaluations > 0 %}
+                <p style="font-size: 16px;">You have <span id="remaining-evaluations">{{ total_evaluations - completed_group_evaluations }}</span> evaluations to complete.</p>
+            {% endif %}
+
+            <br>
+
+            <!-- Group Evaluations Section -->
+            <h3>Group Evaluations</h3>
+            <p style="font-size: 16px;">
+                <span id="completed-group-evaluations"></span>
+                You need to evaluate the following:
+                <ul>
+                    {% for evaluation in group_evaluations_needed %}
+                        <li>
+                            Evaluate <strong>{{ evaluation.member_name }}</strong> for the assignment: <strong>{{ evaluation.assignment_title }}</strong>
+                            {% if evaluation.completed %}
+                                - <span style="color: green;">Completed</span>
+                            {% else %}
+                                - <span style="color: red;">Not Completed</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </p>
+            <br>
+
+            <!-- Self Evaluation Section -->
+            <h3>Self Evaluation</h3>
+            <p>
+                <span id="self-evaluation-status"> 
+                        {% if completed_self_evaluation %}
+                            <p style="font-size:16px;">Your self-evaluation has been submitted.</p>
+                            <ul><li><span style="color: green;">Completed</span></li></ul>
+                        {% else %}
+                            <p style="font-size:16px;">You have not submitted your self-evaluation yet.</p>
+                            <ul><li><span style="color: red;">Not Completed</span></li></ul>
+                        {% endif %}
+                </span>
+            </p>
+        </div>
+
+        <!-- group evaluation -->
+        <div class="block-2">
+            <h2>Group Evaluation</h2>
+
+            {% if group %}
+                <p style="font-size: 16px;"><strong>Group Name:</strong> {{ group.name }}</p> <!-- Display the group name -->
+            {% else %}
+                <p style="font-size: 16px;">No group assigned.</p> <!-- Message if no group is assigned -->
+            {% endif %}
+
+            <button id="group-evaluation-button" class="web-button">Submit Group Evaluation</button>
+
+            <form id="group-evaluation-form" class="assignment-form" style="display: none;" method="POST" action="{{ url_for('evaluation', course_id=course.id) }}">
+                <input type="hidden" name="group_id" value="{{ group.id }}"> <!-- Hidden input for group ID -->
+
+                <label for="assignment-select">Select Assignment:</label>
+                <select id="assignment-select" name="assignment_id" required>
+                    <option value="">--Select an Assignment--</option>
+                    {% for assignment in assignments %}
+                        <option value="{{ assignment.id }}">{{ assignment.title }}</option>
+                    {% endfor %}
+                </select>
+
+                <br><br>
+
+                <h3 class="form-header">Participation</h3>
+                <br>
+                    <div>
+                        <p>1. How actively did your teammate contribute to group discussions and meetings?</p>
+                        <p style="font-size: 14px; color: green;">1 (Low) - 5 (High)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="P1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. How frequently did your teammate share ideas and insights during group activities?</p>
+                        <p style="font-size: 14px; color: green;">1 (Rarely) - 5 (Frequently)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="P2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                            <p>3. To what extent did your teammate engage in collaborative decision-making processes within the group?</p>
+                            <p style="font-size: 14px; color: green;">1 (Not at all) - 5 (Extensively)</p>
+                            <br>
+                            {% for member in group_members %}
+                                <div class="member-container">
+                                    <p class="member-name">{{ member.user.name }}:</p>
+                                    <div class="radio-group">
+                                        {% for i in range(1, 6) %}
+                                            <label>
+                                                <input type="radio" name="P3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                            </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Were their contributions constructive and beneficial to the group's progress?</p>
+                        <p style="font-size: 14px; color: green;">1 (Not beneficial) - 5 (Highly beneficial)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="P4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <h3 class="form-header">Leadership</h3>
+                    <br>
+
+                    <div>
+                        <p>1. Did your teammate take on a leadership role within the group? If yes, how effective was their leadership?</p>
+                        <p style="font-size: 14px; color: green;">1 (Ineffective) - 5 (Highly Effective)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="L1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. How well did your teammate guide and motivate the group toward achieving its goals?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Exceptionally well)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="L2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>3. Did your teammate delegate tasks effectively and fairly?</p>
+                        <p style="font-size: 14px; color: green;">1 (Ineffectively) - 5 (Effectively)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="L3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Did your teammate participate in leading/facilitating discussion?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Exceptionally well)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="L4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <h3 class="form-header">Cooperation</h3>
+                    <br>
+
+                    <div>
+                        <p>1. How well did your teammate collaborate with others in the group?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Excellent)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="C1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. Did your teammate actively seek and consider the opinions and ideas of other group members?</p>
+                        <p style="font-size: 14px; color: green;">1 (Rarely) - 5 (Consistently)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="C2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>3. Were they receptive to feedback and willing to compromise when needed?</p>
+                        <p style="font-size: 14px; color: green;">1 (Not receptive) - 5 (Very receptive)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="C3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Did your teammate clearly understand their roles and their tasks?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Excellent)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="C4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <h3 class="form-header">Time Management</h3>
+                    <br>
+
+                    <div>
+                        <p>1. How well did your teammate adhere to project deadlines and timelines?</p>
+                        <p style="font-size: 14px; color: green;">1 (Frequently Missed) - 5 (Always Met)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="TM1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. Were there instances where your teammate's time management positively or negatively impacted the group's progress?</p>
+                        <p style="font-size: 14px; color: green;">1 (Negatively) - 5 (Positively)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="TM2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>3. Did your teammate effectively communicate any challenges they faced in meeting deadlines?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poor communication) - 5 (Excellent communication)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="TM3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Did your teammate attend group meetings regularly and arrive on time?</p>
+                        <p style="font-size: 14px; color: green;">1(Poor) - 5(Excellent)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="TM4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <h3 class="form-header">Communication Skill</h3>
+                    <br>
+
+                    <div>
+                        <p>1. Evaluate your teammate's communication skills, considering clarity, active listening, and expression of ideas.</p>
+                        <p style="font-size: 14px; color: green;">1 (Ineffective) - 5 (Highly Effective)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="Comm1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. Did your teammate effectively convey complex information or instructions to the group?</p>
+                        <p style="font-size: 14px; color: green;">1 (Not effectively) - 5 (Very effectively)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="Comm2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>3. How responsive and open was your teammate to communication from other group members?</p>
+                        <p style="font-size: 14px; color: green;">1 (Not responsive) - 5 (Very responsive)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="Comm3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Was your teammate always open to receiving both negative and positive feedback from other teammates?</p>
+                        <p style="font-size: 14px; color: green;">1(Poor) - 5(Excellent)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="Comm4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <br><br>
+
+                    <h3 class="form-header">Problem Solving</h3>
+                    <br>
+
+                    <div>
+                        <p>1. How well did your teammate analyse challenges and propose solutions during the project?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Exceptionally well)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="PS1_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>2. Did they actively seek alternative solutions and consider different perspectives?</p>
+                        <p style="font-size: 14px; color: green;">1 (Rarely) - 5 (Consistently)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="PS2_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>3. Did your teammate address and resolve issues quickly?</p>
+                        <p style="font-size: 14px; color: green;">1 (Poorly) - 5 (Exceptionally well)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="PS3_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <div>
+                        <p>4. Your teammate takes responsibility for the effectiveness of your team.</p>
+                        <p style="font-size: 14px; color: green;">1 (Rarely) - 5 (Consistently)</p>
+                        <br>
+                        {% for member in group_members %}
+                            <div class="member-container">
+                                <p class="member-name">{{ member.user.name }}:</p>
+                                <div class="radio-group">
+                                    {% for i in range(1, 6) %}
+                                        <label>
+                                            <input type="radio" name="PS4_{{ member.user.id }}" value="{{ i }}" required> {{ i }}
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <br><br>
+
+                    <button class="web-button" type="submit" name="submit_group_evaluation">Submit</button>
+
+            </form>
+        </div>
+
+        <div class="block-2">
+            <h2>Self Evaluation</h2>
+            <form class="assignment-form" id="self-evaluation-form" method="POST" action="{{ url_for('evaluation', course_id=course.id) }}">
+                <label for="self-participation">Participation:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_participation" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <br><br>
+
+                <label for="self-leadership">Leadership:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_leadership" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <br><br>
+
+                <label for="self-cooperation">Cooperation:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_cooperation" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                    </div>
+
+                <br><br>
+
+                <label for="self-time-management">Time Management:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_time_management" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <br><br>
+
+                <label for="self-communication">Communication:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_communication" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <br><br>
+
+                <label for="self-problem-solving">Problem Solving:</label>
+                <div class="radio-group">
+                    {% for i in range(1,6) %}
+                        <label>
+                            <input type="radio" name="self_problem_solving" value="{{ i }}" required> {{ i }}
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <br><br>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <div class="block-2">
+            <h2>Additional Comments</h2>
+            <form class="assignment-form" method="POST" action="{{ url_for('evaluation', course_id=course.id) }}">
+
+                <li>
+                    <p>What strengths or unique skills did your teammate bring to the group project?</p>
+                </li>
+                <li>
+                    <p>Please provide any additional comments or feedback on your teammate's overall performance and contributions to the group.</p>
+                </li>
+                <textarea name="comment" rows="4" cols="50" placeholder="Leave a comment..." required></textarea>
+
+                <!-- Hidden input for group_id -->
+                <input type="hidden" name="group_id" value="{{ group.id }}"> 
+
+                <br><br>
+
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded',function() {
+                    Swal.fire({
+                        title: 'Notification',
+                        text: "{{ messages[0] }}",  // Display the first message
+                        icon: 'success',  // Change this to 'error', 'warning', etc.
+                        confirmButtonText: 'OK'
+                    });            
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select DOM elements
+        const toggleButton = document.querySelector('.profile-toggle');
+        const profileLinks = document.querySelector('.profile-links');
+        const completedSelfEvaluation = {{ completed_self_evaluation is not none | tojson }};
+        const groupEvaluationButton = document.getElementById('group-evaluation-button');
+        const groupEvaluationForm = document.getElementById('group-evaluation-form');
+
+        // Toggle the display of the profile links
+        toggleButton.addEventListener('click', function() {
+            profileLinks.style.display = (profileLinks.style.display === 'none' || profileLinks.style.display === '') ? 'block' : 'none';
+        });
+
+        // Close the profile links if clicking outside
+        document.addEventListener('click', function(event) {
+            if (!toggleButton.contains(event.target) && !profileLinks.contains(event.target)) {
+                profileLinks.style.display = 'none';
+            }
+        });
+
+        // JavaScript to toggle the form visibility
+        groupEvaluationButton.addEventListener('click', function() {
+            groupEvaluationForm.style.display = groupEvaluationForm.style.display === 'none' || groupEvaluationForm.style.display === '' ? 'block' : 'none';
+        });
+    });
+</script>

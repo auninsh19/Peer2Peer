@@ -1,0 +1,153 @@
+<!-- view_feedback.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback for {{ course.title }}</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+	<header>
+        <div class="topnav">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='P2P.png') }}" alt="Logo">
+            </div>
+
+            <div class="user-profile">
+                <img src="{{ url_for('static', filename='user.png') }}" alt="Profile picture">
+                <span>{{ user.name }}</span>
+                <button class="profile-toggle">▼</button>
+                <div class="profile-links" style="display: none;">
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main">
+        <div class="sidenav">
+            <a href="{{ url_for('course_view', course_id=course.id) }}" class="{% if active_page == 'course_view' %}active{% endif %}">Main</a>
+            <a href="{{ url_for('participants_view', course_id=course.id) }}" class="{% if active_page == 'participants_student' %}active{% endif %}">Participants</a>
+            <a href="{{ url_for('evaluation', course_id=course.id) }}" class="{% if active_page == 'evaluation' %}active{% endif %}">Evaluation</a>
+            <a href="{{ url_for('view_feedback', course_id=course.id) }}" class="{% if active_page == 'view_feedback' %}active{% endif %}">View Feedback</a>
+            <hr>
+             <a href="{{ url_for('course_selection') }}">◀ Back to Course List</a>
+        </div>
+
+        <div class="webloc-section">
+            <p>{{ course.code }} - {{ course.name }} / View Feedback</p>
+        </div>
+
+        <div class="block-2">
+            <h2>Feedback Summary</h2>
+            <p style="font-size: 14px; margin: 4px 0;"><strong>NAME:</strong> {{ user.name }}</p>
+        	<p style="font-size: 14px; margin: 4px 0;"><strong>COURSE:</strong> {{ course.code }} - {{ course.name }}</p>
+	        <p style="font-size: 14px; margin: 4px 0;"><strong>GROUP:</strong> {{ group.name if group else 'N/A' }}</p>
+
+	        <br><hr>
+
+	        <h3>Average Group Evaluation Scores</h3>
+	        <div class="table-style">
+		        <table>
+
+		            <thead>
+		                <tr>
+		                	<th>Assessment</th>
+				            <th>Participation</th>
+				            <th>Leadership</th>
+				            <th>Cooperation</th>
+				            <th>Time Management</th>
+				            <th>Communication</th>
+				            <th>Problem Solving</th>
+		                </tr>
+		            </thead>
+		            <tbody>
+		            	{% if assignment_average_scores|length == 0 %}
+		            		<tr>
+		            			<td> No group evaluation found.</td>
+		            		</tr>
+			            {% else %}
+			                {% for assignment_title, scores in assignment_average_scores.items() %}
+					            <tr>
+					                <td>{{ assignment_title }}</td>
+					                <td>{{ scores.P | round(2) if scores.P else 'N/A'}}</td>
+					                <td>{{ scores.L | round(2) }}</td>
+					                <td>{{ scores.C | round(2) }}</td>
+					                <td>{{ scores.TM | round(2) }}</td>
+					                <td>{{ scores.Comm | round(2) }}</td>
+					                <td>{{ scores.PS | round(2) }}</td>
+					            </tr>
+					        {% endfor %}
+					    {% endif %}
+		            </tbody>
+		        </table>
+		    </div>
+
+		    <br><hr>
+	        <h3>Self Evaluation Scores</h3>
+	        <div class="table-style">
+		        {% if self_evaluation %}
+		            <table>
+		                <thead>
+		                    <tr>
+		                        <th></th>
+					            <th>Participation</th>
+					            <th>Leadership</th>
+					            <th>Cooperation</th>
+					            <th>Time Management</th>
+					            <th>Communication</th>
+					            <th>Problem Solving</th>
+		                    </tr>
+		                </thead>
+		                <tbody>
+		                    <tr>
+					            <td>Self Evaluation</td>
+					            <td>{{ self_evaluation.P }}</td>
+					            <td>{{ self_evaluation.L }}</td>
+					            <td>{{ self_evaluation.C }}</td>
+					            <td>{{ self_evaluation.TM }}</td>
+					            <td>{{ self_evaluation.Comm }}</td>
+					            <td>{{ self_evaluation.PS }}</td>
+					        </tr>
+		                </tbody>
+		            </table>
+		        {% else %}
+		            <p style="font-size: 16px;">No self-evaluation found.</p>
+		        {% endif %}
+	        </div>
+
+	        <br><hr>
+	        <h3>Comments from Group Members</h3>
+	        {% if comments %}
+	            {% for comment in comments %}
+	                <div class="comment-panel"> <!-- Apply the rounded panel style here -->
+		                <p class="comment-author"><strong>Anonymous</strong></p> <!-- Optional: Separate author styling -->
+		                <p class="comment-text">{{ comment.comment }}</p> <!-- Apply text styling -->
+		            </div>
+	            {% endfor %}
+	        {% else %}
+	            <p style="font-size: 16px;">No comments available from group members.</p>
+	        {% endif %}
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.querySelector('.profile-toggle');
+            const profileLinks = document.querySelector('.profile-links');
+
+            toggleButton.addEventListener('click', function() {
+                profileLinks.style.display = profileLinks.style.display === 'none' || profileLinks.style.display === '' ? 'block' : 'none';
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!toggleButton.contains(event.target) && !profileLinks.contains(event.target)) {
+                    profileLinks.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
