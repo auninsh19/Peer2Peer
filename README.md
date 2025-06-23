@@ -42,8 +42,8 @@ Peer2Peer is a web-based peer evaluation system developed as a Final Year Projec
 │ ├── rf_classifier.py
 │ ├── static/
 │ ├── templates/
+│ ├── peer_evaluation.db
 │ └── grade_predict_rf_model.pkl
-├── requirements.txt
 └── README.md
 ```
 
