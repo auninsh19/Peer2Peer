@@ -36,15 +36,15 @@ Peer2Peer is a web-based peer evaluation system developed as a Final Year Projec
 ## 📁 Folder Structure
 
 ```
-├── peer2peer/
-│ ├── app.py
-│ ├── models.py
-│ ├── rf_classifier.py
-│ ├── static/
-│ ├── templates/
-│ ├── peer_evaluation.db
-│ └── grade_predict_rf_model.pkl
-└── README.md
+peer2peer/
+├── README.md
+├── app.py
+├── models.py
+├── rf_classifier.py
+├── static/
+├── templates/
+├── peer_evaluation.db
+└── grade_predict_rf_model.pkl
 ```
 
 ---
@@ -64,21 +64,37 @@ Peer2Peer is a web-based peer evaluation system developed as a Final Year Projec
 
 ## 🚀 How to Run Locally
 
-1. Clone the repository
-2. Create a virtual environment
-3. Install dependencies:
-  ```
-  pip install -r requirements.txt
-  ```
-4. Run the app. Make sure to navigate to the project directory first:
-  ```
-  python app.py
-  ```
-  or if the path is set:
-  ```
-  flask run
-  ```
-6. Visit `http://localhost:5000` in your browser
+1. Clone the repository navigate to the project folder
+   ```
+   git clone https://github.com/auninsh/peer2peer.git
+   cd /your/path/to/peer2peer
+   ```
+3. Create a virtual environment and activate it (recommended). The name can be anything
+   ```
+   python -m venv myenv
+   source myenv/bin/activate   # On Windows: myenv\Scripts\activate
+   ```
+5. Install dependencies
+   ```
+   pip install -r requirements.txt
+   ```
+4. Set Flask app environment variable
+   ```
+   export FLASK_APP=app.py          # On Windows: set FLASK_APP=app.py
+   export FLASK_ENV=development     # Optional: for debug mode
+
+   ```
+5. Run the application
+   ```
+   flask run
+   ```
+6. Access the system:  
+   After running the app, Flask will display a local link in the terminal such as:
+   ```
+   Running on http://127.0.0.1:5000
+   ```
+   You can click the link or copy and paste it into your browser to use the system.
+
 
 ---
 
