@@ -66,7 +66,7 @@ peer2peer/
 
 1. Clone the repository navigate to the project folder
    ```
-   git clone https://github.com/auninsh/peer2peer.git
+   git clone https://github.com/auninsh19/peer2peer.git
    cd /your/path/to/peer2peer
    ```
 3. Create a virtual environment and activate it (recommended). The name can be anything
