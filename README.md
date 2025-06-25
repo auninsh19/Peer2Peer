@@ -67,11 +67,18 @@ Peer2Peer is a web-based peer evaluation system developed as a Final Year Projec
 1. Clone the repository
 2. Create a virtual environment
 3. Install dependencies:
-```
-pip install -r requirements.txt
-```
-4. Run the app:
-5. Visit `http://localhost:5000` in your browser
+  ```
+  pip install -r requirements.txt
+  ```
+4. Run the app. Make sure to navigate to the project directory first:
+  ```
+  python app.py
+  ```
+  or if the path is set:
+  ```
+  flask run
+  ```
+6. Visit `http://localhost:5000` in your browser
 
 ---
 
