@@ -82,7 +82,6 @@ peer2peer/
    ```
    export FLASK_APP=app.py          # On Windows: set FLASK_APP=app.py
    export FLASK_ENV=development     # Optional: for debug mode
-
    ```
 5. Run the application
    ```
